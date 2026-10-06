@@ -1,0 +1,33 @@
+name: decolumax-sync
+
+services:
+  nats:
+    image: nats:2.15.0-scratch
+    container_name: decolumax-nats
+    restart: unless-stopped
+    cpus: "0.50"
+    mem_limit: 256m
+    pids_limit: 64
+    command: ["-c", "/etc/nats/nats.conf"]
+    environment:
+      NATS_SYNC_USER: ${NATS_SYNC_USER:?Set NATS_SYNC_USER in .env}
+      NATS_SYNC_PASSWORD: ${NATS_SYNC_PASSWORD:?Set NATS_SYNC_PASSWORD in .env}
+    volumes:
+      - ./nats.conf:/etc/nats/nats.conf:ro
+      - ./certs:/etc/nats/certs:ro
+      - nats_data:/data/jetstream
+    expose:
+      - "4222"
+    networks:
+      - npm_proxy
+    stop_grace_period: 30s
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  nats_data:
+
+networks:
+  npm_proxy:
+    external: true
+    name: ${NPM_DOCKER_NETWORK:-npm_proxy}
